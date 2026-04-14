@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: xplaincredit
+    name: xplaincredit-real
     runtime: python
     buildCommand: "pip install -r requirements.txt && python train_model.py"
     startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: 3.11.9
