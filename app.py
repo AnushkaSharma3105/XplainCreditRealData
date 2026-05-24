@@ -36,7 +36,7 @@ st.markdown("""
     .risk-high   { background:#ffe5d0; border:2px solid #fd7e14; }
     .risk-vhigh  { background:#f8d7da; border:2px solid #dc3545; }
     .risk-label  { font-size:1.8rem; font-weight:700; margin:0; }
-    .risk-score  { font-size:1.1rem; margin-top:.3rem; }
+    .risk-score  { font-size:1.1rem; margin-top:.3rem; color:#1a1a1a; font-weight:600;}
 
     /* Metric boxes */
     .metric-box  { background:	#131122; border-radius:8px; padding:1rem;
@@ -271,7 +271,10 @@ with st.sidebar:
     pamt6 = st.number_input("April",     value=1000, step=500, key="p6")
 
     st.markdown("---")
-    predict_btn = st.button("🔍 Analyze Risk", use_container_width=True, type="primary")
+    # predict_btn = st.button("🔍 Analyze Risk", use_container_width=True, type="primary")
+    if st.button("🔍 Analyze Risk", use_container_width=True, type="primary"):
+        st.session_state["analyzed"] = True
+    predict_btn = st.session_state.get("analyzed", False)
 
 
 # MAIN
