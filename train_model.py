@@ -23,7 +23,7 @@ MODEL_DIR  = "model"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # Load data
-print("📂 Loading data …")
+print("Loading data …")
 df = pd.read_csv(DATA_PATH, header=1)          # row-0 is the English header
 df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_")
 
@@ -60,27 +60,37 @@ df["AVG_BILL_AMT"]        = df[bill_cols].mean(axis=1)
 df["AVG_PAY_AMT"]         = df[pay_amt_cols].mean(axis=1)
 df["TOTAL_BILL"]          = df[bill_cols].sum(axis=1)
 df["TOTAL_PAY"]           = df[pay_amt_cols].sum(axis=1)
+
+# How much of the bill did customer actually pay
 df["PAY_RATIO"]           = np.where(
     df["TOTAL_BILL"] > 0, df["TOTAL_PAY"] / (df["TOTAL_BILL"] + 1), 0
-)
+) # +1 for double safety, so that total pay would not get divided by 0 (it works like ternary operator)
+
+# How much of the credit limit is being used
 df["UTIL_RATIO"]          = np.where(
     df["LIMIT_BAL"] > 0, df["BILL_AMT1"] / (df["LIMIT_BAL"] + 1), 0
 )
+
+# count how many times customer paid late
 df["NUM_LATE_PAYMENTS"]   = (df[pay_cols] > 0).sum(axis=1)
+# count how many times customer paid on time
 df["NUM_ON_TIME"]         = (df[pay_cols] <= 0).sum(axis=1)
 
+# columns that will actually be used for training the model
+# input columns
 FEATURES = [
     # Original
     "LIMIT_BAL", "SEX", "EDUCATION", "MARRIAGE", "AGE",
     "PAY_0","PAY_2","PAY_3","PAY_4","PAY_5","PAY_6",
-    "BILL_AMT1","BILL_AMT2","BILL_AMT3","BILL_AMT4","BILL_AMT5","BILL_AMT6",
-    "PAY_AMT1","PAY_AMT2","PAY_AMT3","PAY_AMT4","PAY_AMT5","PAY_AMT6",
+    "BILL_ALL_AMT2","BILL_AMT3","BILL_AMT4","BILL_AMT5","BILL_AMT6",
+    "PAY_AMT1","MT1","BIPAY_AMT2","PAY_AMT3","PAY_AMT4","PAY_AMT5","PAY_AMT6",
     # Engineered
     "MAX_DELAY","AVG_BILL_AMT","AVG_PAY_AMT",
     "TOTAL_BILL","TOTAL_PAY","PAY_RATIO","UTIL_RATIO",
     "NUM_LATE_PAYMENTS","NUM_ON_TIME",
 ]
 
+# separate inputs and outputs (supervised ML setup)
 X = df[FEATURES]
 y = df[TARGET]
 
@@ -88,36 +98,41 @@ y = df[TARGET]
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
+
+# check how many rows went for training and testing
 print(f"Train: {len(X_train):,}  |  Test: {len(X_test):,}")
+# :, means separate the value with comma (30000 becomes 30,000)
 
 # Class-imbalance weight 
+# check no. of non defaults and defaults so that minority class is not ignored
 neg, pos     = (y_train == 0).sum(), (y_train == 1).sum()
 scale_weight = neg / pos
 print(f"scale_pos_weight = {scale_weight:.2f}  (neg={neg}, pos={pos})\n")
 
 # Train XGBoost
-print("🚀 Training XGBoost …")
+print("Training XGBoost …")
 model = xgb.XGBClassifier(
     n_estimators      = 500,
     max_depth         = 6,
     learning_rate     = 0.05,
     subsample         = 0.8,
     colsample_bytree  = 0.8,
-    scale_pos_weight  = scale_weight,
+    scale_pos_weight  = scale_weight, # tells xgboost, positive or default class is more important
     use_label_encoder = False,
     eval_metric       = "auc",
-    early_stopping_rounds = 30,
+    early_stopping_rounds = 30, # if model has stopped improving then training should stop immediately and not waste any time
     random_state      = 42,
-    n_jobs            = -1,
+    n_jobs            = -1, # use all available CPU cores, makes training faster
 )
+
 model.fit(
     X_train, y_train,
-    eval_set          = [(X_test, y_test)],
-    verbose           = 50,
+    eval_set          = [(X_test, y_test)], # monitor performance on test data
+    verbose           = 50, # prints training progress after every 50 boosting trees
 )
 
 # Evaluate
-print("\n📊 Evaluation on test set:")
+print("\n Evaluation on test set:")
 y_pred       = model.predict(X_test)
 y_prob       = model.predict_proba(X_test)[:, 1]
 auc          = roc_auc_score(y_test, y_prob)
@@ -140,7 +155,7 @@ cv_scores   = cross_val_score(
 print(f"\n5-fold CV AUC: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
 
 # Save artefacts 
-print("\n💾 Saving model artefacts …")
+print("\n Saving model artefacts …")
 joblib.dump(model,    os.path.join(MODEL_DIR, "xplaincredit_model.pkl"))
 joblib.dump(FEATURES, os.path.join(MODEL_DIR, "feature_names.pkl"))
 
@@ -172,5 +187,5 @@ plt.tight_layout()
 plt.savefig(os.path.join(MODEL_DIR, "eval_plots.png"), dpi=120)
 plt.close()
 
-print("\n✅ Done!  All files saved to ./model/")
+print("\n Done!  All files saved to ./model/")
 print("   Run the app with:  streamlit run app.py")
