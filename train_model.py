@@ -82,8 +82,8 @@ FEATURES = [
     # Original
     "LIMIT_BAL", "SEX", "EDUCATION", "MARRIAGE", "AGE",
     "PAY_0","PAY_2","PAY_3","PAY_4","PAY_5","PAY_6",
-    "BILL_ALL_AMT2","BILL_AMT3","BILL_AMT4","BILL_AMT5","BILL_AMT6",
-    "PAY_AMT1","MT1","BIPAY_AMT2","PAY_AMT3","PAY_AMT4","PAY_AMT5","PAY_AMT6",
+    "BILL_AMT1", BILL_AMT2","BILL_AMT3","BILL_AMT4","BILL_AMT5","BILL_AMT6",
+    "PAY_AMT1","PAY_AMT2","PAY_AMT3","PAY_AMT4","PAY_AMT5","PAY_AMT6",
     # Engineered
     "MAX_DELAY","AVG_BILL_AMT","AVG_PAY_AMT",
     "TOTAL_BILL","TOTAL_PAY","PAY_RATIO","UTIL_RATIO",
@@ -133,8 +133,8 @@ model.fit(
 
 # Evaluate
 print("\n Evaluation on test set:")
-y_pred       = model.predict(X_test)
-y_prob       = model.predict_proba(X_test)[:, 1]
+y_pred       = model.predict(X_test) # returns final class
+y_prob       = model.predict_proba(X_test)[:, 1] # returns probabilities for each class (default only)
 auc          = roc_auc_score(y_test, y_prob)
 
 print(f"ROC-AUC : {auc:.4f}")
@@ -154,7 +154,7 @@ cv_scores   = cross_val_score(
 )
 print(f"\n5-fold CV AUC: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
 
-# Save artefacts 
+# Save artefacts (generated outputs/files from training)
 print("\n Saving model artefacts …")
 joblib.dump(model,    os.path.join(MODEL_DIR, "xplaincredit_model.pkl"))
 joblib.dump(FEATURES, os.path.join(MODEL_DIR, "feature_names.pkl"))
@@ -163,7 +163,7 @@ joblib.dump(FEATURES, os.path.join(MODEL_DIR, "feature_names.pkl"))
 bg_sample = X_train.sample(min(500, len(X_train)), random_state=42)
 joblib.dump(bg_sample, os.path.join(MODEL_DIR, "shap_background.pkl"))
 
-# Save training stats for the dashboard
+# Save training stats for the dashboard 
 train_stats = {
     "n_train"        : int(len(X_train)),
     "n_test"         : int(len(X_test)),
@@ -183,8 +183,8 @@ ConfusionMatrixDisplay(cm, display_labels=["No Default","Default"]).plot(ax=axes
 axes[0].set_title("Confusion Matrix")
 RocCurveDisplay.from_predictions(y_test, y_prob, ax=axes[1], name="XGBoost")
 axes[1].set_title(f"ROC Curve  (AUC = {auc:.3f})")
-plt.tight_layout()
-plt.savefig(os.path.join(MODEL_DIR, "eval_plots.png"), dpi=120)
+plt.tight_layout() # automatically fixes spaces, margins, overlap
+plt.savefig(os.path.join(MODEL_DIR, "eval_plots.png"), dpi=120) # dpi = 120 high image quality
 plt.close()
 
 print("\n Done!  All files saved to ./model/")
