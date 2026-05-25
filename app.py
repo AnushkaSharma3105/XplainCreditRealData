@@ -1,7 +1,3 @@
-"""
-using the UCI Credit Card Default dataset.
-"""
-
 import warnings
 warnings.filterwarnings("ignore")
 

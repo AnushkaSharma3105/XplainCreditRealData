@@ -1,12 +1,3 @@
-"""
-Trains an XGBoost classifier on the UCI Credit Card Default dataset
-(default_of_credit_card_clients.xls / credit_data.csv) and saves all
-artefacts needed by the Streamlit app.
-
-Run once before starting the app:
-    python train_model.py
-"""
-
 import os
 import warnings
 import joblib
