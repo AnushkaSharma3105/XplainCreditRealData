@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 # Custom CSS
-st.markdown("""
+st.markdown(""" 
 <style>
     /* Title */
     .main-title  { font-size:2.4rem; font-weight:700; color:#4361ee; margin-bottom:0; }
@@ -59,10 +59,11 @@ st.markdown("""
         margin-top: 25px;
     }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True) # unsafe_allow_html = True; because normally streamlit blocks raw html and css for safety, this tells streamlit we are using html/css intentionally  
 
 # Load artefacts 
-@st.cache_resource
+# this section connects train_model.py with app.py
+@st.cache_resource # loading pickle files takes time, without caching every interaction would reload files again and again
 def load_artifacts():
     model      = joblib.load("model/xplaincredit_model.pkl")
     features   = joblib.load("model/feature_names.pkl")
@@ -250,21 +251,21 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("**Bill Statements (NT$)**")
-    bill1 = st.number_input("September", value=20000, step=1000, key="b1")
-    bill2 = st.number_input("August",    value=18000, step=1000, key="b2")
-    bill3 = st.number_input("July",      value=15000, step=1000, key="b3")
-    bill4 = st.number_input("June",      value=14000, step=1000, key="b4")
-    bill5 = st.number_input("May",       value=13000, step=1000, key="b5")
-    bill6 = st.number_input("April",     value=12000, step=1000, key="b6")
+    bill1 = st.number_input("September", value=20000, step=1000, min_value=0, key="b1")
+    bill2 = st.number_input("August",    value=18000, step=1000, min_value=0, key="b2")
+    bill3 = st.number_input("July",      value=15000, step=1000, min_value=0, key="b3")
+    bill4 = st.number_input("June",      value=14000, step=1000, min_value=0, key="b4")
+    bill5 = st.number_input("May",       value=13000, step=1000, min_value=0, key="b5")
+    bill6 = st.number_input("April",     value=12000, step=1000, min_value=0, key="b6")
 
     st.markdown("---")
     st.markdown("**Payments Made (NT$)**")
-    pamt1 = st.number_input("September", value=2000, step=500, key="p1")
-    pamt2 = st.number_input("August",    value=1500, step=500, key="p2")
-    pamt3 = st.number_input("July",      value=1500, step=500, key="p3")
-    pamt4 = st.number_input("June",      value=1000, step=500, key="p4")
-    pamt5 = st.number_input("May",       value=1000, step=500, key="p5")
-    pamt6 = st.number_input("April",     value=1000, step=500, key="p6")
+    pamt1 = st.number_input("September", value=2000, step=500, min_value=0, key="p1")
+    pamt2 = st.number_input("August",    value=1500, step=500, min_value=0, key="p2")
+    pamt3 = st.number_input("July",      value=1500, step=500, min_value=0, key="p3")
+    pamt4 = st.number_input("June",      value=1000, step=500, min_value=0, key="p4")
+    pamt5 = st.number_input("May",       value=1000, step=500, min_value=0, key="p5")
+    pamt6 = st.number_input("April",     value=1000, step=500, min_value=0, key="p6")
 
     st.markdown("---")
     # predict_btn = st.button("🔍 Analyze Risk", use_container_width=True, type="primary")
